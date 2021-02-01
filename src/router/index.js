@@ -46,7 +46,7 @@ export default new Router({
                     // markdown 博客回显
                     path: '/blog/blogall',
                     component: () => import('../views/layout/BlogAll.vue'),
-                    meta: { title: 'markdown 所有博客' }
+                    meta: { title: '所有博客' }
                 }
             ]
         },

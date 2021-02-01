@@ -68,12 +68,19 @@
             // 获取Html
             async getBlogById() {
                 let blogId = Number(this.$route.query.blogId);
+                const loading = this.$loading({
+                    lock: true,
+                    text: 'Loading',
+                    spinner: 'el-icon-loading',
+                    background: 'rgba(0, 0, 0, 0.7)'
+                });
                 let res = await queryBlogById({
                     id: blogId
                 });
                 //将返回的数据赋值给Blog
                 this.Blog.title = res.data.title;
                 this.Blog.html = res.data.content;
+                loading.close();
             },
 
             //返回博客列表

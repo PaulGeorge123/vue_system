@@ -29,7 +29,7 @@
                     <div class="table">
                         <el-table :data="blogTableData" border class="table"
                                   ref="multipleTable" header-cell-class-name="table-header">
-                            <el-table-column type="selection" width="55" align="center"></el-table-column>
+<!--                            <el-table-column type="selection" width="55" align="center"></el-table-column>-->
                             <el-table-column prop="id" label="序号" align="center" width="55">
                                 <template scope="scope">
                                     <span>{{(query.pageIndex - 1) * 7 + (scope.$index + 1)}}</span>

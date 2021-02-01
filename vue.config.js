@@ -7,7 +7,7 @@ module.exports = {
         // 跨域
         proxy: {
             '/api':{  //代理标识
-                target:'http://localhost:8081',  //指向的实际地址
+                target:'http://localhost:8090',  //指向的实际地址
                 changeOrigin:true,  // 允许跨域
                 secure:false,
                 pathRewrite:{
