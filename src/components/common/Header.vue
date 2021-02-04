@@ -162,10 +162,7 @@
                     nickName: this.nickname
                 });
                 if (res.code === 200) {
-                    if (res.data === 0) {
-                        this.$message.error('新密码更新错误');
-                    }
-                    if (res.data === 1) {
+                   if (res.data.password !== null && res.data.password !== '' ){
                         this.showModel = false;
                         this.form.newPassword = '';
                         this.form.password = '';
@@ -174,6 +171,8 @@
                             duration: 1000
                         });
                         this.$router.push('/login');
+                    }else{
+                       this.$message.error('新密码更新错误');
                     }
                 }
             },
