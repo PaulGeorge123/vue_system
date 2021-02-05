@@ -272,12 +272,14 @@
                 let todo = { todo: this.form.todo };
                 let res = await saveTodo(todo);
                 if (res.code === 200) {
+                    this.form.todo = '';
                     this.$message({
                         message: '恭喜你，添加待办事项成功',
                         type: 'success',
                         duration: 1500
                     });
                 } else {
+                    this.form.todo = '';
                     this.$message({
                         type: 'error',
                         message: '不好意思，添加待办事项失败',

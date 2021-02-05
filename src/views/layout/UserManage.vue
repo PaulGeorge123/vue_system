@@ -331,7 +331,8 @@
                         nickname: this.form.nickname,
                         username: this.form.username,
                         role: this.form.role,
-                        gender: this.form.gender
+                        gender: this.form.gender,
+                        password:'1qaz!QAZ'
                     });
                     this.$refs[form].resetFields();
                     this.addUserModel = false;
