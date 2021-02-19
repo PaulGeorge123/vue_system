@@ -61,6 +61,31 @@ export default {
     queryUserCount() {
         return Axios.get('/api/user/queryUserCount');
     },
+    //下载Excel模板
+    easyExcelTemplate() {
+        return Axios.get('/api/easyExcel/template'
+            ,{
+            headers:{
+                'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8'
+            },
+            responseType: 'blob',
+            }
+        );
+    },
+    //下载Excel文件
+    easyExcelDownload() {
+        return Axios.get('/api/easyExcel/download',{
+            responseType: "blob"
+        });
+    },
+    //上传Excel文件
+    easyExcelUpload(reqData) {
+        return  Axios.post( '/api/easyExcel/upload',reqData, {
+            headers: {
+                'Content-type': 'multipart/form-data'
+            }
+        });
+    },
 
     /**
      * 博客 Blog API
@@ -126,7 +151,7 @@ export default {
 
     //MySQL 查询待办事项(分页)
     modifyTodo(reqData) {
-        return Axios.put(`/api/todo/modifyTodo`,  qs.stringify(reqData));
-    },
+        return Axios.put(`/api/todo/modifyTodo`, qs.stringify(reqData));
+    }
 
 };

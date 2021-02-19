@@ -30,6 +30,9 @@
                     <el-input v-model="searchInfo" placeholder="请输入用户名" class="handle-input mr10" clearable></el-input>
                     <el-button type="primary" icon="el-icon-search" @click="doSearch">搜索</el-button>
                     <el-button type="primary" icon="el-icon-plus" @click="openAddUser">添加</el-button>
+                    <el-button type="primary" icon="el-icon-upload2" @click="openUploadUserBatch">上传文件</el-button>
+                    <el-button type="primary" icon="el-icon-download" @click="template">下载模板</el-button>
+                    <el-button type="primary" icon="el-icon-download" @click="download">导出文件</el-button>
                 </div>
                 <el-table :data="userTableData" border class="table"
                           ref="multipleTable" header-cell-class-name="table-header"
@@ -186,20 +189,50 @@
                 <el-button type="primary" @click="modifyUser()">确 定</el-button>
             </span>
         </el-dialog>
+
+        <!-- 拖拽上传弹出框 -->
+        <el-dialog title="批量添加" :visible.sync="uploadUserModel" width="40%" :show-close="false"
+                   :close-on-click-modal="false">
+            <div class="upload-style">
+                <el-upload
+                        drag
+                        :limit="limitNum"
+                        :auto-upload="false"
+                        accept=".xlsx"
+                        :action="UploadUrl()"
+                        :before-upload="beforeUploadFile"
+                        :on-change="fileChange"
+                        :on-exceed="exceedFile"
+                        :on-success="handleSuccess"
+                        :on-error="handleError"
+                        :file-list="fileList">
+                    <i class="el-icon-upload"></i>
+                    <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
+                    <div class="el-upload__tip" slot="tip">只能上传excel文件，且不超过3M</div>
+                </el-upload>
+            </div>
+            <span slot="footer" class="dialog-footer">
+                <el-button @click="closeUploadUserBatch">取 消</el-button>
+                <el-button type="primary" @click="saveUploadUserBatch()">确 定</el-button>
+            </span>
+        </el-dialog>
     </div>
 </template>
 
 <script>
     import {
         queryUserAllList, saveUser, queryUserById, modifyUser, queryUserPaging, removeUser, queryUserByFuzzy,
-        queryUserByConditions, removeUserList
+        queryUserByConditions, removeUserList, easyExcelTemplate, easyExcelDownload, easyExcelUpload
     } from '../../service/api';
+    import Axios from '../../service/request';
+    import qs from 'qs';
 
     export default {
         name: 'UserManagement',
         //data用于存放数据或者变量
         data() {
             return {
+                fileList: [],
                 userId: 0,
                 rules: {
                     nickname: [{ required: true, message: '请输入用户昵称', trigger: 'blur' }],
@@ -242,6 +275,8 @@
                 addUserModel: false,
                 // 修改用户 Model
                 modifyUserModel: false,
+                // 批量添加 Model
+                uploadUserModel: false,
                 //搜索用户信息
                 searchInfo: '',
                 //类别
@@ -283,7 +318,8 @@
                 //批量删除状态
                 currentStatus: false,
                 //批量删除条数
-                currentNum: 0
+                currentNum: 0,
+                limitNum: 1
             };
         },
         //用于数据初始化
@@ -332,7 +368,7 @@
                         username: this.form.username,
                         role: this.form.role,
                         gender: this.form.gender,
-                        password:'1qaz!QAZ'
+                        password: '1qaz!QAZ'
                     });
                     this.$refs[form].resetFields();
                     this.addUserModel = false;
@@ -360,7 +396,7 @@
                     });
                 }
             },
-            //关闭添加用户Model
+            //关闭添加用户 Model
             closeAddUser() {
                 this.addUserModel = false;
                 //取消添加用户
@@ -370,6 +406,50 @@
                     duration: 1500
                 });
             },
+
+            //open 批量添加用户 Model
+            openUploadUserBatch() {
+                this.uploadUserModel = true;
+            },
+            //确定批量添加用户
+            async saveUploadUserBatch() {
+                this.uploadUserModel = false;
+                if (this.fileList.length === 0) {
+                    this.$message.warning('请上传文件');
+                } else {
+                    let form = new FormData();
+                    form.append('file', this.fileList[0]);
+                    let res = await easyExcelUpload(form);
+                    if (res.code === 200) {
+                        this.$message({
+                            message: '恭喜你，上传Excel成功',
+                            type: 'success',
+                            duration: 1500
+                        });
+                    } else {
+                        this.$message({
+                            type: 'error',
+                            message: '不好意思，上传Excel失败',
+                            duration: 1500
+                        });
+                    }
+                    this.fileList = [];
+                }
+            },
+
+            //关闭批量添加用户 Model
+            closeUploadUserBatch() {
+                this.uploadUserModel = false;
+                this.fileList = [];
+                //取消添加用户
+                this.$message({
+                    type: 'info',
+                    message: '已取消批量添加',
+                    duration: 1500
+                });
+            },
+
+
             //open 修改用户 Model
             async openModifyUser(index, row) {
                 let res = await queryUserById({
@@ -566,6 +646,80 @@
                     });
                 }
                 this.getQueryUserPaging(this.query.pageIndex);
+            },
+
+            //下载 template
+            async template() {
+                let res = await easyExcelTemplate();
+                console.log(res);
+                let blob = new Blob([res.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8' }); // 为blob设置文件类型，这里以.xlsx为例
+                let fileName = "模板.xlsx";
+                if ("download" in document.createElement("a")) {
+                    const elink = document.createElement("a");
+                    elink.download = fileName;
+                    elink.style.display = "none";
+                    elink.href = URL.createObjectURL(blob);
+                    document.body.appendChild(elink);
+                    elink.click();
+                    URL.revokeObjectURL(elink.href); // 释放URL 对象
+                    document.body.removeChild(elink);
+                } else {
+                    navigator.msSaveBlob(blob, fileName);
+                }
+            },
+
+            //下载文件
+            async download() {
+                let res = await easyExcelDownload();
+                let blob = new Blob([res.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8' }); // 为blob设置文件类型，这里以.xlsx为例
+                let fileName = '用户信息.xlsx';
+                if ('download' in document.createElement('a')) {
+                    const elink = document.createElement('a');
+                    elink.download = fileName;
+                    elink.style.display = 'none';
+                    elink.href = URL.createObjectURL(blob);
+                    document.body.appendChild(elink);
+                    elink.click();
+                    URL.revokeObjectURL(elink.href); // 释放URL 对象
+                    document.body.removeChild(elink);
+                } else {
+                    navigator.msSaveBlob(blob, fileName);
+                }
+            },
+
+            // 文件超出个数限制时的钩子
+            exceedFile(files, fileList) {
+                this.$message.warning(`只能选择 ${this.limitNum} 个文件，当前共选择了 ${files.length + fileList.length} 个`);
+            },
+            // 文件状态改变时的钩子
+            fileChange(file, fileList) {
+                this.fileList.push(file.raw);
+            },
+            // 上传文件之前的钩子, 参数为上传的文件,若返回 false 或者返回 Promise 且被 reject，则停止上传
+            beforeUploadFile(file) {
+                let extension = file.name.substring(file.name.lastIndexOf('.') + 1);
+                let size = file.size / 1024 / 1024;
+                if (extension !== 'xlsx') {
+                    this.$message.warning('只能上传后缀是.xlsx的文件');
+                }
+                if (size > 10) {
+                    this.$message.warning('文件大小不得超过10M');
+                }
+            },
+            // 文件上传成功时的钩子
+            handleSuccess(res, file, fileList) {
+                this.$message.success('文件上传成功');
+            },
+            // 文件上传失败时的钩子
+            handleError(err, file, fileList) {
+                this.$message.error('文件上传失败');
+            },
+            /**
+             * @return {string}
+             */
+            UploadUrl: function() {
+                // 因为action参数是必填项，我们使用二次确认进行文件上传时，直接填上传文件的url会因为没有参数导致api报404，所以这里将action设置为一个返回为空的方法就行，避免抛错
+                return '';
             }
         },
         //监听字段变化
@@ -624,5 +778,11 @@
         display: flex;
         flex-direction: row;
         justify-content: flex-end;
+    }
+
+    .upload-style {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
     }
 </style>

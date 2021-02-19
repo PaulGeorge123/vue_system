@@ -6,6 +6,7 @@ import Axios from './request';
 /**********************   API 接口集合   **************************/
 /*****************************************************************/
 /*****************************************************************/
+
 /*****************************************************************/
 
 
@@ -79,6 +80,23 @@ export async function queryUserByConditions(reqData) {
 export async function queryUserCount() {
     return Api.queryUserCount();
 }
+
+//下载Excel模板
+export async function easyExcelTemplate() {
+    return Api.easyExcelTemplate();
+}
+
+//下载Excel文件
+export async function easyExcelDownload() {
+    return Api.easyExcelDownload();
+}
+
+//上传Excel文件
+
+export async function easyExcelUpload(reqData) {
+    return Api.easyExcelUpload(reqData);
+}
+
 
 /**
  * 博客 Blog API

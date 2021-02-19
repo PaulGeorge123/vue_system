@@ -1,7 +1,7 @@
 <template>
     <div class="login-wrap">
         <div class="ms-login">
-            <div class="ms-title">Blog后台管理系统</div>
+            <div class="ms-title">YG博客后台管理系统</div>
             <el-form :model="param" :rules="rules" ref="login" label-width="0px" class="ms-content">
                 <el-form-item prop="nickname">
                     <el-input v-model="param.nickname" placeholder="用户昵称">
